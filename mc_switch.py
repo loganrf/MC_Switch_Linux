@@ -80,31 +80,56 @@ class module:
         report[0] = switch_index
         report[1] = state
 
-        # Send report
-        # Note: hidapi.write expects a list of integers.
-        # First byte is report ID if using numbered reports, but here protocol says Byte 0 is command code.
-        # However, hidapi usually requires report ID as first byte if report IDs are used.
-        # If report IDs are NOT used (Report ID 0), then first byte of data is the first byte of payload.
-        # But if the device expects Report ID 0, some platforms might prepend 0 automatically or require it.
-        # Let's assume standard behavior: prepend 0x00 if Report IDs are used, or just send data.
-        # The manual says "Transmit Array = [Byte 0][Byte 1]...". It doesn't explicitly mention Report ID.
-        # Typically with hidapi, if Report ID is 0, we prepend 0. If protocol Byte 0 IS the command, it might be the Report ID itself?
-        # But here Command Code is 1-8 for Setting Switch. These are likely NOT Report IDs because Report IDs are usually constant for a type of report (e.g. OUT report).
-        # But here Byte 0 varies. So likely it is just data payload.
-        # In hidapi, write() sends data to the Output endpoint.
-        # If the device uses Report ID 0 (no report ID), we just send the 64 bytes.
-        # However, on some systems (Windows), the first byte must be 0x00 (Report ID). On Linux it might not matter or might be stripped.
-        # The safest way is to try sending [0] + report if report ID is required, or just report.
-        # Since I can't test, I'll follow common practice.
-        # The manual says "Transmit Array = [Byte 0][Byte1]...".
-        # Byte 0 is the Command Code.
-        # If Command Code is variable (1, 9, 40...), it suggests it's part of the payload, NOT the Report ID.
-        # So I should send 64 bytes where buffer[0] is the command code.
-        # For hidapi.write, we usually prepend 0x00 as Report ID if the device doesn't use numbered reports.
-        # I'll prepend 0x00 just in case, making it 65 bytes.
-
         data = [0x00] + report
         self.device.write(data)
+
+    def get(self, switch_char):
+        """
+        Gets the state of a switch.
+        Returns:
+            1 if state is 0 (Port 1)
+            2 if state is 1 (Port 2)
+            Other value if state is different.
+        """
+        switch_char = switch_char.upper()
+        if not ('A' <= switch_char <= 'H'):
+            raise ValueError(f"Invalid switch '{switch_char}'. Must be between A and H.")
+
+        switch_index = ord(switch_char) - ord('A') + 1
+
+        # Attempt to read status.
+        # Try to read directly first
+        data = self.device.read(64, timeout_ms=100)
+
+        if not data:
+            # If no data, send a query.
+            # We use a command code matching switch_index but with a special state value.
+            # Assuming state 2 requests status.
+            report = [0] * 64
+            report[0] = switch_index
+            report[1] = 0x02 # Request Status
+            self.device.write([0x00] + report)
+
+            data = self.device.read(64, timeout_ms=200)
+
+        if not data:
+            raise RuntimeError("Failed to read switch status.")
+
+        # Parse response
+        # Assuming format: [switch_index, state, ...]
+        if len(data) >= 2:
+            resp_index = data[0]
+            resp_state = data[1]
+
+            # State mapping: 0 -> 1, 1 -> 2
+            if resp_state == 0:
+                return 1
+            elif resp_state == 1:
+                return 2
+            else:
+                 return resp_state # Raw state if unexpected or unsupported
+
+        raise RuntimeError(f"Unexpected response format: {data}")
 
     def close(self):
         if self.device:
@@ -113,14 +138,37 @@ class module:
 def main():
     parser = argparse.ArgumentParser(description="Control Mini-Circuits RF Switches via USB")
     parser.add_argument('-s', '--serial', type=str, help='Serial number of the device')
+    parser.add_argument('-f', '--find', action='store_true', help='List all connected MC switches')
+    parser.add_argument('-g', '--get', type=str, help='Get the state of a switch (e.g. A)')
     parser.add_argument('commands', nargs='*', help='Switch commands (e.g., A1 B2)')
 
     args = parser.parse_args()
 
+    if args.find:
+        # Enumerate devices
+        try:
+            device_list = hid.enumerate(VENDOR_ID, PRODUCT_ID)
+            if not device_list:
+                print("No Mini-Circuits RF Switch devices found.")
+            else:
+                print("Connected Mini-Circuits RF Switches:")
+                for dev in device_list:
+                    print(f"- Serial: {dev['serial_number']}")
+        except Exception as e:
+            print(f"Error enumerating devices: {e}", file=sys.stderr)
+        return
+
     try:
         sw = module(s=args.serial)
 
-        if not args.commands:
+        if args.get:
+             try:
+                 state = sw.get(args.get)
+                 print(f"{state}")
+             except Exception as e:
+                 print(f"Error getting status for switch {args.get}: {e}", file=sys.stderr)
+
+        if not args.commands and not args.get:
             print(f"Connected to Mini-Circuits RF Switch (Serial: {sw.serial})")
 
         for cmd in args.commands:

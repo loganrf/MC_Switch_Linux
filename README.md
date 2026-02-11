@@ -13,6 +13,16 @@ After invoking "mc_switch" the user has merely to provide the case-insensitive s
 # mc_switch -s 02209210196 A1 B2 C1 D2
 ```
 
+To enumerate all connected Mini-Circuits switches and list their serial numbers:
+```
+# mc_switch -f
+```
+
+To get the current status of a switch (returns 1 or 2):
+```
+# mc_switch -g A
+```
+
 The python interface is very similar
 ```
 import mc_switch as ms
@@ -22,6 +32,11 @@ switch = ms.module(s=02209210196)
 
 # Sets switch A to position 1
 switch.set('A1')
+
+# Get status of switch A (returns 1 or 2)
+status = switch.get('A')
+print(f"Switch A is set to port {status}")
+
 switch.close()
 # This method of invocation grabs the first minicircuits switch found
 switch2 = ms.module()
