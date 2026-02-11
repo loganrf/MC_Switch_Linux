@@ -27,3 +27,51 @@ switch.close()
 switch2 = ms.module()
 switch2.close()
 ```
+
+# Installation
+
+## Prerequisites
+
+Ensure you have Python 3 installed.
+
+Install the `hidapi` Python package:
+
+```bash
+pip install hidapi
+```
+
+On Linux systems, you may also need to install `libusb` and `libudev` development packages if the pre-built wheels for `hidapi` do not work or if you are building from source:
+
+```bash
+sudo apt-get install libusb-1.0-0-dev libudev-dev
+```
+
+## Udev Rules (Linux)
+
+To access the USB device without root privileges, create a udev rule.
+
+Create a file named `/etc/udev/rules.d/99-minicircuits.rules` with the following content:
+
+```
+SUBSYSTEM=="usb", ATTRS{idVendor}=="20ce", ATTRS{idProduct}=="0022", MODE="0666"
+```
+
+Reload the udev rules:
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+## Setup
+
+1. Clone this repository.
+2. Ensure `mc_switch.py` and the `mc_switch` script are executable:
+   ```bash
+   chmod +x mc_switch.py mc_switch
+   ```
+3. You can run the CLI utility directly:
+   ```bash
+   ./mc_switch A1
+   ```
+   Or add the directory to your PATH.
