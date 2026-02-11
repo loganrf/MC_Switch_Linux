@@ -32,7 +32,7 @@ switch2.close()
 
 ### Binary Release
 
-You can download the latest pre-built binary for Linux from the [Releases](https://github.com/loganrf/MC_Switch_Linux/Releases) page.
+You can download the latest pre-built binary for Linux from the [Releases](https://github.com/loganrf/MC_Switch_Linux/releases) page.
 
 1. Download `mc_switch_linux_x64.tar.gz`.
 2. Extract the archive:
