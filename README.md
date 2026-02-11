@@ -30,7 +30,23 @@ switch2.close()
 
 # Installation
 
-## Prerequisites
+## Binary Release
+
+You can download the latest pre-built binary for Linux from the [Releases](https://github.com/your-username/your-repo/releases) page.
+
+1. Download `mc_switch_linux_x64.tar.gz`.
+2. Extract the archive:
+   ```bash
+   tar -xzvf mc_switch_linux_x64.tar.gz
+   ```
+3. Run the executable:
+   ```bash
+   ./mc_switch --help
+   ```
+
+## Source Installation
+
+### Prerequisites
 
 Ensure you have Python 3 installed.
 
@@ -46,7 +62,7 @@ On Linux systems, you may also need to install `libusb` and `libudev` developmen
 sudo apt-get install libusb-1.0-0-dev libudev-dev
 ```
 
-## Udev Rules (Linux)
+### Udev Rules (Linux)
 
 To access the USB device without root privileges, create a udev rule.
 
