@@ -1,6 +1,6 @@
 # MC_Switch_Linux
 
-# Use
+## Use
 
 This library provides command line & python interfaces to the mini ciruits RC-4SPDT-A40 quad SPDT switch.
 
@@ -28,9 +28,9 @@ switch2 = ms.module()
 switch2.close()
 ```
 
-# Installation
+## Installation
 
-## Binary Release
+### Binary Release
 
 You can download the latest pre-built binary for Linux from the [Releases](https://github.com/your-username/your-repo/releases) page.
 
@@ -44,9 +44,9 @@ You can download the latest pre-built binary for Linux from the [Releases](https
    ./mc_switch --help
    ```
 
-## Source Installation
+### Source Installation
 
-### Prerequisites
+#### Prerequisites
 
 Ensure you have Python 3 installed.
 
@@ -62,7 +62,7 @@ On Linux systems, you may also need to install `libusb` and `libudev` developmen
 sudo apt-get install libusb-1.0-0-dev libudev-dev
 ```
 
-### Udev Rules (Linux)
+#### Udev Rules (Linux)
 
 To access the USB device without root privileges, create a udev rule.
 
@@ -79,7 +79,7 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
-## Setup
+### Setup
 
 1. Clone this repository.
 2. Ensure `mc_switch.py` and the `mc_switch` script are executable:
